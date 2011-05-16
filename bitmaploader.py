@@ -260,6 +260,12 @@ class Bitmap:
 		
 	def __get_pixel_color24(self, x, y):
 		"""Get the colour of the specified pixel from a 24-bit bitmap."""
+
+		if x >= self.width:
+			raise ValueError("x co-ordinate exceeds dimensions of bitmap")
+
+		if y >= self.height:
+			raise ValueError("y co-ordinate exceeds dimensions of bitmap")
 		
 		# Calculate the number of bytes in each pixel
 		pixel_byte_width = self.__bits_per_pixel // 8
@@ -271,11 +277,16 @@ class Bitmap:
 		
 		if mod_width != 0:
 			aligned_width += 4 - mod_width
-		
+
+		# Calculate the amount of padding added to the end of the file.  This is
+		# calculated by finding the difference between the size of the data and
+		# the dimensions of the file.
+		data_padding = (self.__offset + self.__image_size) - ((self.width * self.height * 3) + self.__offset)
+
 		# Calculate the offset of the pixel from the start of the data.
 		# Rows of pixels are stored upside down, so the offset is calculated
 		# from the end of the data backwards
-		pixel_offset = self.__offset + (self.__image_size - ((y + 1) * aligned_width)) + (x * pixel_byte_width)
+		pixel_offset = self.__offset + (self.__image_size - ((y + 1) * aligned_width)) + (x * pixel_byte_width) - data_padding
 
 		# Extract the bytes of data comprising the pixel
 		return self.__data[pixel_offset:pixel_offset + pixel_byte_width]
